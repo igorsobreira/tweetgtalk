@@ -2,7 +2,8 @@ import mocker
 import unittest
 from tweepy.error import TweepError
 
-from tweetgtalk.bot import TwitterManager, TwitterAccount, MessageHandler
+from tweetgtalk.bot import TwitterManager, TwitterAccount, MessageHandler, \
+        TwitterCommands
 
 class TwitterManagerTestCase(unittest.TestCase):
     
@@ -223,3 +224,41 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         handler.handle(msg)
 
         self.mocker.verify()
+
+
+class TwitterCommandsTestCase(mocker.MockerTestCase):
+
+    def test_timeline_command(self):
+    
+        author1 = self.mocker.mock()
+        author1.name
+        self.mocker.result("igorsobreira")
+
+        status1 = self.mocker.mock()
+        status1.author
+        self.mocker.result(author1)
+        status1.text
+        self.mocker.result("Just a simple tweet")
+        
+        author2 = self.mocker.mock()
+        author2.name
+        self.mocker.result("somebody")
+
+        status2 = self.mocker.mock()
+        status2.author
+        self.mocker.result(author2)
+        status2.text
+        self.mocker.result("Just another tweet")
+
+        api = self.mocker.mock()
+        api.home_timeline()
+        self.mocker.result([status1, status2])
+        
+        self.mocker.replay()
+
+        commands = TwitterCommands(api)
+        result = commands.home_timeline()
+        
+        self.mocker.verify()
+        assert "@igorsobreira: Just a simple tweet\n@somebody: Just another tweet" == result
+         

@@ -5,7 +5,10 @@ import tweepy
 import config
 
 class TweetBot(sleekxmpp.ClientXMPP):
-    
+    '''
+    Handle XMPP logic
+    '''
+
     def __init__(self, jid, password):
         super(TweetBot, self).__init__(jid, password)
         self.add_event_handler("session_start", self.on_start)
@@ -22,7 +25,10 @@ class TweetBot(sleekxmpp.ClientXMPP):
 
 
 class MessageHandler(object):
-    
+    '''
+    Handle incomming messages routing to commands or authentication
+    '''
+
     def __init__(self, bot=None):
         self.bot = bot
         self.manager = TwitterManager()
@@ -47,12 +53,21 @@ class MessageHandler(object):
                 self.send_message(jid, u'Enter de verification code:')
     
     def execute_command(self, account, command):
-        pass 
+        commands = TwitterCommands(account._api)
+        
+        if command == 'timeline':
+            result = commands.home_timeline()
+
+        self.send_message(account.jid, result)
     
     def send_message(self, jid, msg):
         self.bot.sendMessage(jid, msg)
 
+
 class TwitterManager(object):
+    '''
+    Manage the twitter accounts
+    '''
 
     def __init__(self):
         self.accounts = {}
@@ -72,7 +87,9 @@ class TwitterManager(object):
 
 
 class TwitterAccount(object):
-
+    '''
+    Handles a twitter account for an user (JID) and control the authentication
+    '''
     def __init__(self, jid):
         self.jid = jid
         self.verified = False
@@ -101,6 +118,23 @@ class TwitterAccount(object):
         self.verified = True
         return True
 
+
+class TwitterCommands(object):
+    '''
+    Calls commands on API object and returns already formated to answer the user
+    '''
+
+    def __init__(self, api):
+        self.api = api
+
+    def home_timeline(self):
+        status_list = self.api.home_timeline()
+        result = []
+        tweet = u"@{0}: {1}"
+        for status in status_list:
+            result.append(tweet.format(status.author.name, status.text))
+        
+        return u"\n\n".join(result)
 
 
 def main():
