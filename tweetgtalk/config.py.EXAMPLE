@@ -1,0 +1,9 @@
+# bot information
+BOT_JID = 'bot@gmail.com'
+BOT_PASSWORD = 'secret'
+BOT_HOST = 'talk.google.com'
+BOT_PORT = 5222
+
+# twitter application information
+TWEET_APP_CONSUMER_TOKEN = 'foo'
+TWEET_APP_CONSUMER_SECRET = 'bar'
