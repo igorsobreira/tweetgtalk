@@ -1,3 +1,4 @@
 py
+mocker
 -e git://github.com/fritzy/SleekXMPP.git#egg=SleekXMPP
 -e git://github.com/joshthecoder/tweepy.git#egg=tweepy

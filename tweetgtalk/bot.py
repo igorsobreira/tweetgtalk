@@ -11,49 +11,97 @@ class TweetBot(sleekxmpp.ClientXMPP):
         self.add_event_handler("session_start", self.on_start)
         self.add_event_handler("message", self.on_message)
         
-        self.twitter = TwitterManager()
+        self.message_handler = MessageHandler(bot=self)
 
     def on_start(self, event):
         self.sendPresence()
 
     def on_message(self, msg):
         if msg['type'] == 'chat' and msg['body']:
-            self.handle_message(msg)
+            self.message_handler.handle(msg)
 
-    def handle_message(self, msg):
+
+class MessageHandler(object):
+    
+    def __init__(self, bot=None):
+        self.bot = bot
+        self.manager = TwitterManager()
+
+    def handle(self, msg):
         body = msg['body'].strip()
+        jid = msg.getFrom().jid
 
-        if self.twitter.waiting_permission:
-            self.twitter.create_api(verifier=body)
-            self.sendMessage(msg.getFrom(), 'Authentication complete!')
-            self.sendMessage(msg.getFrom(), str(self.twitter.api.home_timeline()))
-
-        elif body == 'start':
-            redirect_url = self.twitter.authenticate()
-            self.sendMessage(msg.getFrom(), redirect_url)
-            self.sendMessage(msg.getFrom(), 'Enter de verifier bellow:')
-
-
+        account = self.manager.get_or_create_account(jid)
+        if account.verified:
+            self.execute_command(account, body)
+        else: 
+            if account.authenticating:
+                if account.verify(body):
+                    self.send_message(jid, 'Authentication complete!')
+                else:
+                    self.send_message(jid, 'Invalid verification code')
+            else:
+                redirect_url = account.authenticate()
+                self.send_message(jid, u'Enter the url bellow and click "Allow"')
+                self.send_message(jid, redirect_url)
+                self.send_message(jid, u'Enter de verification code:')
+    
+    def execute_command(self, account, command):
+        pass 
+    
+    def send_message(self, jid, msg):
+        self.bot.sendMessage(jid, msg)
 
 class TwitterManager(object):
 
     def __init__(self):
-        self.auth = None
-        self.api = None
-        self.waiting_permission = False
+        self.accounts = {}
+    
+    def get_account(self, jid):
+        try:
+            return self.accounts[jid]
+        except KeyError:
+            return None
+
+    def get_or_create_account(self, jid):
+        account = self.get_account(jid)
+        if not account:
+            account = TwitterAccount(jid)
+            self.accounts[jid] = account
+        return account
+
+
+class TwitterAccount(object):
+
+    def __init__(self, jid):
+        self.jid = jid
+        self.verified = False
+        self.authenticating = False
+        self._auth = None
+        self._api = None
 
     def authenticate(self):
-        self.auth = tweepy.OAuthHandler(
+        self._auth = tweepy.OAuthHandler(
                 config.TWEET_APP_CONSUMER_TOKEN,
                 config.TWEET_APP_CONSUMER_SECRET)
-        redirect_url = self.auth.get_authorization_url()
-        self.waiting_permission = True
-        return redirect_url
+        url = self._auth.get_authorization_url()
+        self.authenticating = True
+        return url
+
     
-    def create_api(self, verifier):
-        self.auth.get_access_token(verifier)
-        self.api = tweepy.API(self.auth)
-    
+    def verify(self, code):
+        try:
+            self._auth.get_access_token(code)
+        except tweepy.error.TweepError:
+            self.verified = False
+            self.authenticating = True
+            return False
+        self._api = tweepy.API(self._auth)
+        self.authenticating = False
+        self.verified = True
+        return True
+
+
 
 def main():
     bot = TweetBot(config.BOT_JID, config.BOT_PASSWORD)
