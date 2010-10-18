@@ -53,7 +53,7 @@ class MessageHandler(object):
                 self.send_message(jid, u'Enter de verification code:')
     
     def execute_command(self, account, command):
-        commands = TwitterCommands(account._api)
+        commands = TwitterCommands(account.api)
         
         if command == 'timeline':
             result = commands.home_timeline()
@@ -95,7 +95,7 @@ class TwitterAccount(object):
         self.verified = False
         self.authenticating = False
         self._auth = None
-        self._api = None
+        self.api = None
 
     def authenticate(self):
         self._auth = tweepy.OAuthHandler(
@@ -113,7 +113,7 @@ class TwitterAccount(object):
             self.verified = False
             self.authenticating = True
             return False
-        self._api = tweepy.API(self._auth)
+        self.api = tweepy.API(self._auth)
         self.authenticating = False
         self.verified = True
         return True
