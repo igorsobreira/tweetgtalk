@@ -141,7 +141,7 @@ class TwitterCommands(object):
         result = []
         tweet = u"@{0}: {1}"
         for status in status_list:
-            result.append(tweet.format(status.author.name, status.text))
+            result.append(tweet.format(status.author.screen_name, status.text))
         
         return u"\n\n".join(result)
     

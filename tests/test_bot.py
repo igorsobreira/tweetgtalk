@@ -310,7 +310,7 @@ class TwitterCommandsTestCase(mocker.MockerTestCase):
     def test_timeline_command(self):
     
         author1 = self.mocker.mock()
-        author1.name
+        author1.screen_name
         self.mocker.result("igorsobreira")
 
         status1 = self.mocker.mock()
@@ -320,7 +320,7 @@ class TwitterCommandsTestCase(mocker.MockerTestCase):
         self.mocker.result("Just a simple tweet")
         
         author2 = self.mocker.mock()
-        author2.name
+        author2.screen_name
         self.mocker.result("somebody")
 
         status2 = self.mocker.mock()
