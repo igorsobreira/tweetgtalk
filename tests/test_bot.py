@@ -224,7 +224,21 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         handler.handle(msg)
 
         self.mocker.verify()
-
+    
+#    def test_route_timeline_command(self):
+#        account = self.mocker.mock()
+#        account.jid
+#        self.mocker.result("igor@igorsobreira.com/Adium123")
+#        
+#        send_message = self.mocker.mock()
+#        send_message("igor@igorsobreira.com/Adium123", "timeline")
+#
+#        self.mocker.replay()
+#
+#        handler = MessageHandler()
+#        handler.execute_command(account, "timeline ")
+#
+#        self.mocker.verify()
 
 class TwitterCommandsTestCase(mocker.MockerTestCase):
 
@@ -260,5 +274,28 @@ class TwitterCommandsTestCase(mocker.MockerTestCase):
         result = commands.home_timeline()
         
         self.mocker.verify()
-        assert "@igorsobreira: Just a simple tweet\n@somebody: Just another tweet" == result
-         
+        assert "@igorsobreira: Just a simple tweet\n\n@somebody: Just another tweet" == result
+    
+    def test_tweet_command(self):
+        api = self.mocker.mock()
+        api.update_status(u"this is a tweet to test the api")
+        
+        self.mocker.replay()
+
+        commands = TwitterCommands(api)
+        result = commands.update_status(u"this is a tweet to test the api")
+        
+        self.mocker.verify()
+        assert u"Tweet sent" == result
+
+    def test_tweet_command_validate_length(self):
+        api = self.mocker.mock()
+        
+        self.mocker.replay()
+
+        commands = TwitterCommands(api)
+        result = commands.update_status(u"o"*141)
+        
+        self.mocker.verify()
+        assert u"Tweet too long, 141 characters. Must be up to 140." == result
+

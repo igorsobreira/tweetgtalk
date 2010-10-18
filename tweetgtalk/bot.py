@@ -135,6 +135,13 @@ class TwitterCommands(object):
             result.append(tweet.format(status.author.name, status.text))
         
         return u"\n\n".join(result)
+    
+    def update_status(self, tweet):
+        if len(tweet) > 140:
+            return u"Tweet too long, {0} characters. Must be up to 140.".format(len(tweet))
+        self.api.update_status(tweet)
+        return u"Tweet sent"
+
 
 
 def main():
