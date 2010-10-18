@@ -32,6 +32,7 @@ class MessageHandler(object):
     def __init__(self, bot=None):
         self.bot = bot
         self.manager = TwitterManager()
+        self.commands_class = TwitterCommands
 
     def handle(self, msg):
         body = msg['body'].strip()
@@ -53,10 +54,18 @@ class MessageHandler(object):
                 self.send_message(jid, u'Enter de verification code:')
     
     def execute_command(self, account, command):
-        commands = TwitterCommands(account.api)
+        commands = self.commands_class(account.api)
         
         if command == 'timeline':
             result = commands.home_timeline()
+        elif command.startswith('tweet'):
+            try:
+                _, tweet = command.split(" ", 1)
+            except ValueError:
+                tweet = ""
+            result = commands.update_status(tweet)
+        else:
+            result = "unkown command"
 
         self.send_message(account.jid, result)
     
@@ -137,9 +146,15 @@ class TwitterCommands(object):
         return u"\n\n".join(result)
     
     def update_status(self, tweet):
+        tweet = tweet.strip()
+        
+        if not tweet:
+            return u"Empty tweet"
+        
         if len(tweet) > 140:
             return u"Tweet too long, {0} characters. Must be up to 140.".format(len(tweet))
         self.api.update_status(tweet)
+
         return u"Tweet sent"
 
 

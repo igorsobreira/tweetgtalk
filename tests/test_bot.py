@@ -224,21 +224,86 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         handler.handle(msg)
 
         self.mocker.verify()
+        
+    def test_execute_command_not_found(self):
+        account = self.mocker.mock()
+        account.jid
+        self.mocker.result("igor@igorsobreira.com/Adium123")
+        account.api
+        self.mocker.result("api")
+        
+        send_message = self.mocker.mock()
+        send_message("igor@igorsobreira.com/Adium123", "unkown command")
+        
+        commands_class = self.mocker.mock()
+        commands_class("api")
+
+        self.mocker.replay()
+
+        handler = MessageHandler()
+        handler.send_message = send_message
+        handler.commands_class = commands_class
+
+        handler.execute_command(account, "foobar")
+
+        self.mocker.verify()
+
+    def test_execute_command_timeline(self):
+        account = self.mocker.mock()
+        account.jid
+        self.mocker.result("igor@igorsobreira.com/Adium123")
+        account.api
+        self.mocker.result("api")
+        
+        send_message = self.mocker.mock()
+        send_message("igor@igorsobreira.com/Adium123", "@foo: bar")
+        
+        commands = self.mocker.mock()
+        commands.home_timeline()
+        self.mocker.result("@foo: bar")
+
+        commands_class = self.mocker.mock()
+        commands_class("api")
+        self.mocker.result(commands)
+
+        self.mocker.replay()
+
+        handler = MessageHandler()
+        handler.send_message = send_message
+        handler.commands_class = commands_class
+
+        handler.execute_command(account, "timeline")
+
+        self.mocker.verify()
     
-#    def test_route_timeline_command(self):
-#        account = self.mocker.mock()
-#        account.jid
-#        self.mocker.result("igor@igorsobreira.com/Adium123")
-#        
-#        send_message = self.mocker.mock()
-#        send_message("igor@igorsobreira.com/Adium123", "timeline")
-#
-#        self.mocker.replay()
-#
-#        handler = MessageHandler()
-#        handler.execute_command(account, "timeline ")
-#
-#        self.mocker.verify()
+    def test_execute_command_tweet(self):
+        account = self.mocker.mock()
+        account.jid
+        self.mocker.result("igor@igorsobreira.com/Adium123")
+        account.api
+        self.mocker.result("api")
+        
+        send_message = self.mocker.mock()
+        send_message("igor@igorsobreira.com/Adium123", "Tweet sent")
+        
+        commands = self.mocker.mock()
+        commands.update_status("this is an example tweet")
+        self.mocker.result("Tweet sent")
+
+        commands_class = self.mocker.mock()
+        commands_class("api")
+        self.mocker.result(commands)
+
+        self.mocker.replay()
+
+        handler = MessageHandler()
+        handler.send_message = send_message
+        handler.commands_class = commands_class
+
+        handler.execute_command(account, "tweet this is an example tweet")
+
+        self.mocker.verify()
+        
 
 class TwitterCommandsTestCase(mocker.MockerTestCase):
 
@@ -287,6 +352,12 @@ class TwitterCommandsTestCase(mocker.MockerTestCase):
         
         self.mocker.verify()
         assert u"Tweet sent" == result
+    
+    def test_tweet_command_ignores_empty_tweets(self):
+        commands = TwitterCommands("api")
+        result = commands.update_status("  ")
+        
+        assert u"Empty tweet" == result
 
     def test_tweet_command_validate_length(self):
         api = self.mocker.mock()
