@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import re
 import sleekxmpp
 import tweepy
 
@@ -53,14 +54,16 @@ class MessageHandler(object):
                 self.send_message(jid, redirect_url)
                 self.send_message(jid, u'Enter de verification code:')
     
-    def execute_command(self, account, command):
+    def execute_command(self, account, message):
         commands = self.commands_class(account.api)
-        
-        if command == 'timeline':
+#        command, kwargs = commands.resolve(command)
+#        self.send_message(command(**kwargs))
+
+        if message == 'timeline':
             result = commands.home_timeline()
-        elif command.startswith('tweet'):
+        elif message.startswith('tweet'):
             try:
-                _, tweet = command.split(" ", 1)
+                _, tweet = message.split(" ", 1)
             except ValueError:
                 tweet = ""
             result = commands.update_status(tweet)
@@ -135,6 +138,25 @@ class TwitterCommands(object):
 
     def __init__(self, api):
         self.api = api
+    
+    @property
+    def patterns(self):
+        patterns = (
+            (r'^timeline$', self.home_timeline),
+            (r'^tweet$', self.update_status),
+        )
+        return [ (re.compile(regex), func) for regex, func in patterns ]
+
+    def resolve(self, message):
+        for (regex, func) in self.patterns:
+            match = regex.match(message)
+            if match:
+                return func, match.groupdict()
+
+        return self.not_found, {}
+    
+    def not_found(self):
+        return u"Command not found"
 
     def home_timeline(self):
         status_list = self.api.home_timeline()

@@ -305,6 +305,28 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         self.mocker.verify()
         
 
+class TwitterCommandsResolverTestCase(unittest.TestCase):
+
+    def test_resolve_timeline_command(self):
+        commands = TwitterCommands("api")
+        result = commands.resolve(u"timeline")
+        
+        assert (commands.home_timeline, {}) == result
+
+    def test_resolve_tweet_comamnd(self):
+        commands = TwitterCommands("api")
+        result = commands.resolve(u"tweet")
+        
+        assert (commands.update_status, {}) == result
+
+    def test_not_found(self):
+        commands = TwitterCommands("api")
+        result = commands.resolve("command not found")
+
+        assert (commands.not_found, {}) == result
+        assert u"Command not found" == commands.not_found()
+
+
 class TwitterCommandsTestCase(mocker.MockerTestCase):
 
     def test_timeline_command(self):
