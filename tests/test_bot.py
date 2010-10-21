@@ -339,7 +339,7 @@ class TwitterCommandsResolverTestCase(unittest.TestCase):
         commands = TwitterCommands("api")
         result = commands.resolve(u"dm @igorsobreira hello")
         
-        params = {'user': 'igorsobreira', 'text': 'hello'}
+        params = {'screen_name': 'igorsobreira', 'text': 'hello'}
         assert (commands.send_direct_message, params) == result 
 
     def test_not_found(self):
@@ -431,12 +431,25 @@ class TwitterCommandsTestCase(mocker.MockerTestCase):
     
     def test_direct_message_command(self):
         api = self.mocker.mock()
-        api.send_direct_message("igorsobreira", "hello")
+        api.send_direct_message(screen_name="igorsobreira", text="hello")
 
         self.mocker.replay()
 
         commands = TwitterCommands(api)
-        result = commands.send_direct_message('igorsobreira', 'hello')
+        result = commands.send_direct_message(screen_name='igorsobreira', text='hello')
 
         self.mocker.verify()
         assert u"Message sent" == result
+
+    def test_direct_message_error_when_trying_to_send_to_non_friends(self):
+        api = self.mocker.mock()
+        api.send_direct_message(screen_name="unknown", text="hello")
+        self.mocker.throw(TweepError(u"You cannot send messages to users who are not following you."))
+
+        self.mocker.replay()
+
+        commands = TwitterCommands(api)
+        result = commands.send_direct_message(screen_name='unknown', text='hello')
+
+        self.mocker.verify()
+        assert u"You cannot send messages to users who are not following you." == result

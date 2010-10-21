@@ -132,7 +132,7 @@ class TwitterCommands(object):
             (r'^timeline$', self.home_timeline),
             (r'^timeline (?P<page>\d+)$', self.home_timeline),
             (r'^tweet$', self.update_status),
-            (r'^dm @(?P<user>[\w_-]+) (?P<text>.*)$', self.send_direct_message),
+            (r'^dm @(?P<screen_name>[\w_-]+) (?P<text>.*)$', self.send_direct_message),
         )
         return [ (re.compile(regex), func) for regex, func in patterns ]
 
@@ -168,8 +168,11 @@ class TwitterCommands(object):
 
         return u"Tweet sent"
 
-    def send_direct_message(self, user, text):
-        self.api.send_direct_message(user, text)
+    def send_direct_message(self, screen_name, text):
+        try:
+            self.api.send_direct_message(screen_name=screen_name, text=text)
+        except tweepy.error.TweepError, e:
+            return unicode(e.reason)
         
         return u"Message sent"
 
