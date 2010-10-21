@@ -132,6 +132,7 @@ class TwitterCommands(object):
             (r'^timeline$', self.home_timeline),
             (r'^timeline (?P<page>\d+)$', self.home_timeline),
             (r'^tweet$', self.update_status),
+            (r'^dm @(?P<user>[\w_-]+) (?P<text>.*)$', self.send_direct_message),
         )
         return [ (re.compile(regex), func) for regex, func in patterns ]
 
@@ -167,6 +168,10 @@ class TwitterCommands(object):
 
         return u"Tweet sent"
 
+    def send_direct_message(self, user, text):
+        self.api.send_direct_message(user, text)
+        
+        return u"Message sent"
 
 
 def main():

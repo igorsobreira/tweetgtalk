@@ -334,6 +334,13 @@ class TwitterCommandsResolverTestCase(unittest.TestCase):
         result = commands.resolve(u"tweet")
         
         assert (commands.update_status, {}) == result
+    
+    def test_resolve_direct_message_command(self):
+        commands = TwitterCommands("api")
+        result = commands.resolve(u"dm @igorsobreira hello")
+        
+        params = {'user': 'igorsobreira', 'text': 'hello'}
+        assert (commands.send_direct_message, params) == result 
 
     def test_not_found(self):
         commands = TwitterCommands("api")
@@ -421,4 +428,15 @@ class TwitterCommandsTestCase(mocker.MockerTestCase):
         
         self.mocker.verify()
         assert u"Tweet too long, 141 characters. Must be up to 140." == result
+    
+    def test_direct_message_command(self):
+        api = self.mocker.mock()
+        api.send_direct_message("igorsobreira", "hello")
 
+        self.mocker.replay()
+
+        commands = TwitterCommands(api)
+        result = commands.send_direct_message('igorsobreira', 'hello')
+
+        self.mocker.verify()
+        assert u"Message sent" == result
