@@ -252,11 +252,13 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         self.mocker.result("api")
         
         send_message = self.mocker.mock()
-        send_message("igor@igorsobreira.com/Adium123", "@foo: bar")
+        send_message("igor@igorsobreira.com/Adium123", "@foo: bar",
+                u'<a href="http://twitter.com/foo">@foo</a>: bar')
         
         home_timeline = self.mocker.mock()
         home_timeline()
-        self.mocker.result("@foo: bar")
+        self.mocker.result( 
+                ("@foo: bar", u'<a href="http://twitter.com/foo">@foo</a>: bar'))
 
         commands = self.mocker.mock()
         commands.resolve("timeline")
@@ -275,7 +277,7 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         handler.execute_command(account, "timeline")
 
         self.mocker.verify()
-    
+
     def test_execute_command_tweet(self):
         account = self.mocker.mock()
         account.jid

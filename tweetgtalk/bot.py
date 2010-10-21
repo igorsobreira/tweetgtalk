@@ -57,10 +57,14 @@ class MessageHandler(object):
     def execute_command(self, account, message):
         commands = self.commands_class(account.api)
         command, kwargs = commands.resolve(message)
-        self.send_message(account.jid, command(**kwargs))
+        result = command(**kwargs)
+        if isinstance(result, (list,tuple)):
+            self.send_message(account.jid, *result)
+        else:
+            self.send_message(account.jid, result)
     
-    def send_message(self, jid, msg):
-        self.bot.sendMessage(jid, msg)
+    def send_message(self, jid, text, html=None):
+        self.bot.sendMessage(mto=jid, mbody=text, mhtml=html)
 
 
 class TwitterManager(object):
