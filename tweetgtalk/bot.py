@@ -56,21 +56,8 @@ class MessageHandler(object):
     
     def execute_command(self, account, message):
         commands = self.commands_class(account.api)
-#        command, kwargs = commands.resolve(command)
-#        self.send_message(command(**kwargs))
-
-        if message == 'timeline':
-            result = commands.home_timeline()
-        elif message.startswith('tweet'):
-            try:
-                _, tweet = message.split(" ", 1)
-            except ValueError:
-                tweet = ""
-            result = commands.update_status(tweet)
-        else:
-            result = "unkown command"
-
-        self.send_message(account.jid, result)
+        command, kwargs = commands.resolve(message)
+        self.send_message(account.jid, command(**kwargs))
     
     def send_message(self, jid, msg):
         self.bot.sendMessage(jid, msg)

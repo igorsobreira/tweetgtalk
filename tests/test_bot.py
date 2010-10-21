@@ -233,16 +233,12 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         self.mocker.result("api")
         
         send_message = self.mocker.mock()
-        send_message("igor@igorsobreira.com/Adium123", "unkown command")
+        send_message("igor@igorsobreira.com/Adium123", "Command not found")
         
-        commands_class = self.mocker.mock()
-        commands_class("api")
-
         self.mocker.replay()
 
         handler = MessageHandler()
         handler.send_message = send_message
-        handler.commands_class = commands_class
 
         handler.execute_command(account, "foobar")
 
@@ -258,9 +254,13 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         send_message = self.mocker.mock()
         send_message("igor@igorsobreira.com/Adium123", "@foo: bar")
         
-        commands = self.mocker.mock()
-        commands.home_timeline()
+        home_timeline = self.mocker.mock()
+        home_timeline()
         self.mocker.result("@foo: bar")
+
+        commands = self.mocker.mock()
+        commands.resolve("timeline")
+        self.mocker.result((home_timeline, {}))
 
         commands_class = self.mocker.mock()
         commands_class("api")
@@ -286,9 +286,13 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         send_message = self.mocker.mock()
         send_message("igor@igorsobreira.com/Adium123", "Tweet sent")
         
-        commands = self.mocker.mock()
-        commands.update_status("this is an example tweet")
+        update_status = self.mocker.mock()
+        update_status(tweet="this is an example tweet")
         self.mocker.result("Tweet sent")
+        
+        commands = self.mocker.mock()
+        commands.resolve("tweet this is an example tweet")
+        self.mocker.result((update_status, {"tweet": "this is an example tweet"}))
 
         commands_class = self.mocker.mock()
         commands_class("api")
