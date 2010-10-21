@@ -130,13 +130,14 @@ class TwitterCommands(object):
     def patterns(self):
         patterns = (
             (r'^timeline$', self.home_timeline),
+            (r'^timeline (?P<page>\d+)$', self.home_timeline),
             (r'^tweet$', self.update_status),
         )
         return [ (re.compile(regex), func) for regex, func in patterns ]
 
     def resolve(self, message):
         for (regex, func) in self.patterns:
-            match = regex.match(message)
+            match = regex.match(message.strip())
             if match:
                 return func, match.groupdict()
 
@@ -145,8 +146,8 @@ class TwitterCommands(object):
     def not_found(self):
         return u"Command not found"
 
-    def home_timeline(self):
-        status_list = self.api.home_timeline()
+    def home_timeline(self, page=1):
+        status_list = self.api.home_timeline(page=page)
         result = []
         tweet = u"@{0}: {1}"
         for status in status_list:

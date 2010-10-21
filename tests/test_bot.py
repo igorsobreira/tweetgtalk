@@ -316,6 +316,18 @@ class TwitterCommandsResolverTestCase(unittest.TestCase):
         result = commands.resolve(u"timeline")
         
         assert (commands.home_timeline, {}) == result
+    
+    def test_ignore_extra_spaces(self):
+        commands = TwitterCommands("api")
+        result = commands.resolve(u"  timeline   ")
+
+        assert (commands.home_timeline, {}) == result
+    
+    def test_resolve_timeline_command_paginated(self):
+        commands = TwitterCommands("api")
+        result = commands.resolve(u"timeline 2")
+        
+        assert (commands.home_timeline, {'page': '2'}) == result
 
     def test_resolve_tweet_comamnd(self):
         commands = TwitterCommands("api")
@@ -334,38 +346,38 @@ class TwitterCommandsResolverTestCase(unittest.TestCase):
 class TwitterCommandsTestCase(mocker.MockerTestCase):
 
     def test_timeline_command(self):
-    
-        author1 = self.mocker.mock()
-        author1.screen_name
-        self.mocker.result("igorsobreira")
-
-        status1 = self.mocker.mock()
-        status1.author
-        self.mocker.result(author1)
-        status1.text
-        self.mocker.result("Just a simple tweet")
         
-        author2 = self.mocker.mock()
-        author2.screen_name
-        self.mocker.result("somebody")
+        def tweet(username, message):
+            author = self.mocker.mock()
+            author.screen_name
+            self.mocker.result(username)
 
-        status2 = self.mocker.mock()
-        status2.author
-        self.mocker.result(author2)
-        status2.text
-        self.mocker.result("Just another tweet")
+            status = self.mocker.mock()
+            status.author
+            self.mocker.result(author)
+            status.text
+            self.mocker.result(message)
+            return status
+        
+        status1 = tweet('igorsobreira', 'Just a simple tweet')
+        status2 = tweet('somebody', 'Just another tweet')
+        status3 = tweet('anotherperson', 'a tweet in another page')
 
         api = self.mocker.mock()
-        api.home_timeline()
+        api.home_timeline(page=1)
         self.mocker.result([status1, status2])
-        
+        api.home_timeline(page=2)
+        self.mocker.result([status3])
+
         self.mocker.replay()
 
         commands = TwitterCommands(api)
-        result = commands.home_timeline()
-        
+        result1 = commands.home_timeline()
+        result2 = commands.home_timeline(page=2)
+
         self.mocker.verify()
-        assert "@igorsobreira: Just a simple tweet\n\n@somebody: Just another tweet" == result
+        assert "@igorsobreira: Just a simple tweet\n\n@somebody: Just another tweet" == result1
+        assert "@anotherperson: a tweet in another page" == result2
     
     def test_tweet_command(self):
         api = self.mocker.mock()
