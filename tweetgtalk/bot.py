@@ -37,7 +37,7 @@ class MessageHandler(object):
 
     def handle(self, msg):
         body = msg['body'].strip()
-        jid = msg.getFrom().jid
+        jid = str(msg.get_from())
 
         account = self.manager.get_or_create_account(jid)
         if account.verified:
@@ -64,7 +64,7 @@ class MessageHandler(object):
             self.send_message(account.jid, result)
     
     def send_message(self, jid, text, html=None):
-        self.bot.sendMessage(mto=jid, mbody=text, mhtml=html)
+        self.bot.send_message(mto=jid, mbody=text, mhtml=html)
 
 
 class TwitterManager(object):

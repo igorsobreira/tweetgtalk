@@ -105,7 +105,7 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         msg = self.mocker.mock()
         msg['body']
         self.mocker.result("timeline")
-        msg.getFrom().jid
+        msg.get_from()
         self.mocker.result("igor@igorsobreira.com/Adium123")
         
         account = self.mocker.mock()
@@ -131,7 +131,7 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         msg = self.mocker.mock()
         msg['body']
         self.mocker.result("start")
-        msg.getFrom().jid
+        msg.get_from()
         self.mocker.result("igor@igorsobreira.com/Adium123")
 
         account = self.mocker.mock()
@@ -165,7 +165,7 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         msg = self.mocker.mock()
         msg['body']
         self.mocker.result("123456")
-        msg.getFrom().jid
+        msg.get_from()
         self.mocker.result("igor@igorsobreira.com/Adium123")
 
         account = self.mocker.mock()
@@ -197,7 +197,7 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         msg = self.mocker.mock()
         msg['body']
         self.mocker.result("123456")
-        msg.getFrom().jid
+        msg.get_from()
         self.mocker.result("igor@igorsobreira.com/Adium123")
 
         account = self.mocker.mock()
