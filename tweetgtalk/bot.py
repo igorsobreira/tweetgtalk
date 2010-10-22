@@ -153,12 +153,17 @@ class TwitterCommands(object):
 
     def home_timeline(self, page=1):
         status_list = self.api.home_timeline(page=page)
-        result = []
-        tweet = u"@{0}: {1}"
+        result_text = []
+        result_html = []
+        html = u'<a href="http://twitter.com/{user}">@{user}</a>: {msg}'
+
         for status in status_list:
-            result.append(tweet.format(status.author.screen_name, status.text))
-        
-        return u"\n\n".join(result)
+            user = status.user.screen_name
+            text = status.text
+            result_text.append(u'@{0}: {1}'.format(user, text))
+            result_html.append(html.format(user=user, msg=text))
+         
+        return u"\n\n".join(result_text), u"<br><br>".join(result_html)
     
     def update_status(self, tweet):
         tweet = tweet.strip()

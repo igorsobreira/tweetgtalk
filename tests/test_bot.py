@@ -355,13 +355,13 @@ class TwitterCommandsResolverTestCase(unittest.TestCase):
 class TwitterCommandsTestCase(mocker.MockerTestCase):
     
     def _tweet(self, username, message):
-        author = self.mocker.mock()
-        author.screen_name
+        user = self.mocker.mock()
+        user.screen_name
         self.mocker.result(username)
 
         status = self.mocker.mock()
-        status.author
-        self.mocker.result(author)
+        status.user
+        self.mocker.result(user)
         status.text
         self.mocker.result(message)
         return status
@@ -377,10 +377,17 @@ class TwitterCommandsTestCase(mocker.MockerTestCase):
         self.mocker.replay()
 
         commands = TwitterCommands(api)
-        result1 = commands.home_timeline()
+        text, html = commands.home_timeline()
 
         self.mocker.verify()
-        assert "@igorsobreira: Just a simple tweet\n\n@somebody: Just another tweet" == result1
+        assert '@igorsobreira: Just a simple tweet\n\n@somebody: Just another tweet' == text
+        
+        expected_html =  '<a href="http://twitter.com/igorsobreira">@igorsobreira</a>: '
+        expected_html += 'Just a simple tweet<br><br>'
+        expected_html += '<a href="http://twitter.com/somebody">@somebody</a>: '
+        expected_html += 'Just another tweet'
+        
+        assert expected_html == html
     
     def test_timeline_command_paginated(self):
         status1 = self._tweet('igorsobreira', 'Just a simple tweet')
@@ -395,13 +402,23 @@ class TwitterCommandsTestCase(mocker.MockerTestCase):
         self.mocker.replay()
 
         commands = TwitterCommands(api)
-        result1 = commands.home_timeline()
-        result2 = commands.home_timeline(page=2)
+        text1, html1 = commands.home_timeline()
+        text2, html2 = commands.home_timeline(page=2)
 
         self.mocker.verify()
-        assert "@igorsobreira: Just a simple tweet" == result1
-        assert "@somebody: Just another tweet" == result2
         
+        expected_html1 =  '<a href="http://twitter.com/igorsobreira">@igorsobreira</a>: '
+        expected_html1 += 'Just a simple tweet'
+        
+        assert "@igorsobreira: Just a simple tweet" == text1
+        assert expected_html1 == html1
+
+        expected_html2 = '<a href="http://twitter.com/somebody">@somebody</a>: '
+        expected_html2 += 'Just another tweet'
+        
+        assert "@somebody: Just another tweet" == text2
+        assert expected_html2 == html2
+
     def test_tweet_command(self):
         api = self.mocker.mock()
         api.update_status(u"this is a tweet to test the api")
