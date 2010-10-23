@@ -4,6 +4,8 @@ import sleekxmpp
 import tweepy
 
 import config
+import db
+from models import User
 
 class TweetBot(sleekxmpp.ClientXMPP):
     '''
@@ -40,12 +42,13 @@ class MessageHandler(object):
         jid = str(msg.get_from())
 
         account = self.manager.get_or_create_account(jid)
-        if account.verified:
+        if account.verified or account.reload_authentication():
             self.execute_command(account, body)
         else: 
             if account.authenticating:
                 if account.verify(body):
                     self.send_message(jid, 'Authentication complete!')
+                    account.save()
                 else:
                     self.send_message(jid, 'Invalid verification code')
             else:
@@ -64,7 +67,7 @@ class MessageHandler(object):
             self.send_message(account.jid, result)
     
     def send_message(self, jid, text, html=None):
-        self.bot.send_message(mto=jid, mbody=text, mhtml=html)
+        self.bot.send_message(mto=jid, mbody=text)#, mhtml=html)  # not working
 
 
 class TwitterManager(object):
@@ -97,21 +100,24 @@ class TwitterAccount(object):
         self.jid = jid
         self.verified = False
         self.authenticating = False
-        self._auth = None
         self.api = None
-
-    def authenticate(self):
+        self._token = None
         self._auth = tweepy.OAuthHandler(
                 config.TWEET_APP_CONSUMER_TOKEN,
                 config.TWEET_APP_CONSUMER_SECRET)
+    
+    @property
+    def simple_jid(self):
+        return str(self.jid).split("/", 1)[0]
+
+    def authenticate(self):
         url = self._auth.get_authorization_url()
         self.authenticating = True
         return url
-
     
     def verify(self, code):
         try:
-            self._auth.get_access_token(code)
+            self._token = self._auth.get_access_token(code)
         except tweepy.error.TweepError:
             self.verified = False
             self.authenticating = True
@@ -120,7 +126,24 @@ class TwitterAccount(object):
         self.authenticating = False
         self.verified = True
         return True
-
+    
+    def save(self):
+        try:
+            user = User.objects.get(jid=self.simple_jid)
+        except User.DoesNotExist:
+            user = User(jid=self.simple_jid)
+        user.token = self._token.to_string()
+        user.save()
+    
+    def reload_authentication(self):
+        try:
+            user = User.objects.get(jid=self.simple_jid)
+        except User.DoesNotExist:
+            return False
+        self._token = tweepy.oauth.OAuthToken.from_string(user.token)
+        self._auth.set_access_token(self._token.key, self._token.secret)
+        self.api = tweepy.API(self._auth)
+        return True
 
 class TwitterCommands(object):
     '''
@@ -187,6 +210,9 @@ class TwitterCommands(object):
 
 
 def main():
+    db.connect()
+    print("Connected to MongoDB")
+
     bot = TweetBot(config.BOT_JID, config.BOT_PASSWORD)
     
     bot.registerPlugin('xep_0030')
@@ -194,10 +220,10 @@ def main():
     bot.registerPlugin('xep_0060')
     bot.registerPlugin('xep_0199')
     
-    print("Created bot")
+    print("Creating bot")
     
     if bot.connect((config.BOT_HOST, config.BOT_PORT)):
-        print("Connected")
+        print("OK")
         bot.process(threaded=False)
         print("\nDone")
     else:

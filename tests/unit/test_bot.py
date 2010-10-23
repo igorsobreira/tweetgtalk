@@ -127,6 +127,34 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
 
         self.mocker.verify()
 
+    def test_handle_message_from_user_with_persisted_authentication(self):
+        msg = self.mocker.mock()
+        msg['body']
+        self.mocker.result("timeline")
+        msg.get_from()
+        self.mocker.result("igor@igorsobreira.com/Adium123")
+        
+        account = self.mocker.mock()
+        account.verified
+        self.mocker.result(False)
+        account.reload_authentication()
+        self.mocker.result(True)
+
+        manager = self.mocker.mock()
+        manager.get_or_create_account("igor@igorsobreira.com/Adium123")
+        self.mocker.result(account)
+
+        handler = MessageHandler()
+        handler.manager = manager 
+        handler.execute_command = self.mocker.mock()
+        handler.execute_command(account, "timeline")
+        
+        self.mocker.replay()
+
+        handler.handle(msg)
+
+        self.mocker.verify()
+
     def test_handle_message_to_start_authentication(self):
         msg = self.mocker.mock()
         msg['body']
@@ -136,6 +164,8 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
 
         account = self.mocker.mock()
         account.verified
+        self.mocker.result(False)
+        account.reload_authentication()
         self.mocker.result(False)
         account.authenticating
         self.mocker.result(False)
@@ -171,10 +201,13 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
         account = self.mocker.mock()
         account.verified
         self.mocker.result(False)
+        account.reload_authentication()
+        self.mocker.result(False)
         account.authenticating
         self.mocker.result(True)
         account.verify("123456")
         self.mocker.result(True)
+        account.save()
 
         manager = self.mocker.mock()
         manager.get_or_create_account("igor@igorsobreira.com/Adium123")
@@ -202,6 +235,8 @@ class MessageHandlerTestCase(mocker.MockerTestCase):
 
         account = self.mocker.mock()
         account.verified
+        self.mocker.result(False)
+        account.reload_authentication()
         self.mocker.result(False)
         account.authenticating
         self.mocker.result(True)

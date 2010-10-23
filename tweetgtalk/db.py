@@ -1,4 +1,9 @@
 import mongoengine
+import config
 
-def connect(*args, **kwargs):
-    return mongoengine.connect(*args, **kwargs)
+def connect():
+    return mongoengine.connect(
+            config.DB_NAME,
+            username=config.DB_USERNAME,
+            password=config.DB_PASSWORD
+        )
