@@ -19,11 +19,19 @@ Dependencies
  - [tweepy](http://github.com/joshthecoder/tweepy)
  - [py.test](http://codespeak.net/py/dist/test/)
  - [mocker](http://labix.org/mocker)
+ - [mongoengine](http://mongoengine.org)
 
 Running tests
 -------------
 
     py.test tests/
+
+or specify which tests to run
+
+    py.test tests/unit
+    py.test tests/functional
+
+*NOTE*: to run functional tests you need MongoDB running.
 
 Using
 -----

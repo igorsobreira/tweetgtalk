@@ -7,3 +7,8 @@ BOT_PORT = 5222
 # twitter application information
 TWEET_APP_CONSUMER_TOKEN = 'foo'
 TWEET_APP_CONSUMER_SECRET = 'bar'
+
+# mongodb information
+DB_NAME = 'tweetgtalk'
+DB_USERNAME = ''
+DB_PASSWORD = ''
