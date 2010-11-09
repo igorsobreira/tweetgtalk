@@ -69,9 +69,14 @@ class MessageHandler(object):
     
     def send_message(self, jid, text, html=None):
         if html is not None:
-            html_block = (u'<html xmlns="http://jabber.org/protocol/xhtml-im">'
-                u'<body xmlns="http://www.w3.org/1999/xhtml">%s</body></html>')
-            html = ET.XML(html_block % html)
+            try:
+                html_block = (
+                    u'<html xmlns="http://jabber.org/protocol/xhtml-im">'
+                    u'<body xmlns="http://www.w3.org/1999/xhtml">'
+                    u'%s</body></html>')
+                html = ET.XML(html_block % html)
+            except SyntaxError:
+                html = None
         self.bot.send_message(mto=jid, mbody=text, mhtml=html)
 
 
