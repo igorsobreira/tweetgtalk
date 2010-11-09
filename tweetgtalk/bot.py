@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import re
-import sleekxmpp
 import tweepy
+import sleekxmpp
+from sleekxmpp.xmlstream import ET
 
 import config
 import db
@@ -67,7 +68,11 @@ class MessageHandler(object):
             self.send_message(account.jid, result)
     
     def send_message(self, jid, text, html=None):
-        self.bot.send_message(mto=jid, mbody=text)#, mhtml=html)  # not working
+        if html is not None:
+            html_block = (u'<html xmlns="http://jabber.org/protocol/xhtml-im">'
+                u'<body xmlns="http://www.w3.org/1999/xhtml">%s</body></html>')
+            html = ET.XML(html_block % html)
+        self.bot.send_message(mto=jid, mbody=text, mhtml=html)
 
 
 class TwitterManager(object):
@@ -186,7 +191,7 @@ class TwitterCommands(object):
             result_text.append(u'@{0}: {1}'.format(user, text))
             result_html.append(html.format(user=user, msg=text))
          
-        return u"\n\n".join(result_text), u"<br><br>".join(result_html)
+        return u"\n\n".join(result_text), u"<br/><br/>".join(result_html)
     
     def update_status(self, tweet):
         tweet = tweet.strip()

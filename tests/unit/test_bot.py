@@ -36,8 +36,17 @@ class TwitterManagerTestCase(unittest.TestCase):
 class TwitterAccountTestCase(mocker.MockerTestCase):
     
     def test_create_account(self):
+        auth = self.mocker.mock()
+
+        tweepy = self.mocker.replace("tweepy")
+        tweepy.OAuthHandler(mocker.ARGS)
+        self.mocker.result(auth)
+        
+        self.mocker.replay()
+
         account = TwitterAccount('igor@igorsobreira.com/Admium123')
 
+        self.mocker.verify()
         assert False == account.authenticating
         assert False == account.verified
 
@@ -68,11 +77,12 @@ class TwitterAccountTestCase(mocker.MockerTestCase):
         tweepy = self.mocker.replace("tweepy")
         tweepy.API(mocker.ARGS)
         self.mocker.result("api_instance")
+        tweepy.OAuthHandler(mocker.ARGS)
+        self.mocker.result(auth)
         
         self.mocker.replay()
 
         account = TwitterAccount("igor@igorsobreira.com/Adium123")
-        account._auth = auth
         verified = account.verify("code")
 
         self.mocker.verify()
@@ -86,10 +96,13 @@ class TwitterAccountTestCase(mocker.MockerTestCase):
         auth.get_access_token(mocker.ARGS)
         self.mocker.throw(TweepError("error"))
 
+        tweepy = self.mocker.replace("tweepy")
+        tweepy.OAuthHandler(mocker.ARGS)
+        self.mocker.result(auth)
+
         self.mocker.replay()
 
         account = TwitterAccount("igor@igorsobreira.com/Adium123")
-        account._auth = auth
         verified = account.verify("code")
 
         self.mocker.verify()
@@ -418,7 +431,7 @@ class TwitterCommandsTestCase(mocker.MockerTestCase):
         assert '@igorsobreira: Just a simple tweet\n\n@somebody: Just another tweet' == text
         
         expected_html =  '<a href="http://twitter.com/igorsobreira">@igorsobreira</a>: '
-        expected_html += 'Just a simple tweet<br><br>'
+        expected_html += 'Just a simple tweet<br/><br/>'
         expected_html += '<a href="http://twitter.com/somebody">@somebody</a>: '
         expected_html += 'Just another tweet'
         
