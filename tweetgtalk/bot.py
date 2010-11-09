@@ -163,7 +163,7 @@ class TwitterCommands(object):
         patterns = (
             (r'^timeline$', self.home_timeline),
             (r'^timeline (?P<page>\d+)$', self.home_timeline),
-            (r'^tweet$', self.update_status),
+            (r'^tweet (?P<tweet>.*)$', self.update_status),
             (r'^dm @(?P<screen_name>[\w_-]+) (?P<text>.*)$', self.send_direct_message),
         )
         return [ (re.compile(regex), func) for regex, func in patterns ]

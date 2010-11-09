@@ -381,9 +381,9 @@ class TwitterCommandsResolverTestCase(unittest.TestCase):
 
     def test_resolve_tweet_comamnd(self):
         commands = TwitterCommands("api")
-        result = commands.resolve(u"tweet")
+        result = commands.resolve(u"tweet this is a tweet")
         
-        assert (commands.update_status, {}) == result
+        assert (commands.update_status, {'tweet': 'this is a tweet'}) == result
     
     def test_resolve_direct_message_command(self):
         commands = TwitterCommands("api")
